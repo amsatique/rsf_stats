@@ -58,6 +58,7 @@
     .panel-head { font-size: .85rem; font-weight: 600; color: var(--text); margin-bottom: .6rem; cursor: default; }
     details.panel > summary.panel-head { cursor: pointer; }
     .panel-sub { color: var(--muted); font-size: .82rem; margin-top: .4rem; }
+    .panel-desc { color: var(--muted); font-size: .82rem; margin: -.2rem 0 .7rem; }
     .panel-row { display: flex; flex-wrap: wrap; gap: 1.25rem; align-items: stretch; }
     .panel-row > .panel { flex: 1 1 320px; }
     .panel-row .heatmap { overflow-x: auto; }

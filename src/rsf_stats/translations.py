@@ -200,6 +200,42 @@ _STRINGS: dict[str, dict[str, str]] = {
     "compete.wins": {"en": "Wins", "fr": "Victoires"},
     "compete.contested": {"en": "Contested", "fr": "Disputées"},
     "analysis.rank_movers": {"en": "Biggest rank movers", "fr": "Plus gros mouvements de rang"},
+    "analysis.subtitle": {
+        "en": (
+            "Where you stand and where to improve. Ranks may be estimated (~) until "
+            "your times appear on the public leaderboards."
+        ),
+        "fr": (
+            "Où tu te situes et où progresser. Les rangs peuvent être estimés (~) tant "
+            "que tes temps ne sont pas sur les classements publics."
+        ),
+    },
+    "desc.strengths": {
+        "en": "Your average share of the field you beat, per surface and per country — best first.",
+        "fr": (
+            "La part moyenne du peloton que tu bats, par surface et par pays — meilleurs d'abord."
+        ),
+    },
+    "desc.time_on_table": {
+        "en": "Per stage, the time you'd save if you matched the fastest time in every sector.",
+        "fr": "Par spéciale, le temps gagné si tu égalais le meilleur temps sur chaque secteur.",
+    },
+    "desc.rank_movers": {
+        "en": "Stages where your position changed the most between visits (▲ gained, ▼ lost).",
+        "fr": "Spéciales où ta position a le plus bougé entre deux visites (▲ gagné, ▼ perdu).",
+    },
+    "desc.pbs": {
+        "en": "Stages where you improved your own time — number of times set and your best so far.",
+        "fr": "Spéciales où tu as amélioré ton temps — nombre de tentatives et ton meilleur temps.",
+    },
+    "desc.by_surface": {
+        "en": "How many stages you've completed on each surface.",
+        "fr": "Combien de spéciales tu as terminées sur chaque surface.",
+    },
+    "desc.by_country": {
+        "en": "How many stages you've completed in each country.",
+        "fr": "Combien de spéciales tu as terminées dans chaque pays.",
+    },
     # --- Status ---
     "status.title": {"en": "Status", "fr": "État"},
     "status.sub": {
