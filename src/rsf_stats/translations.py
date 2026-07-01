@@ -92,9 +92,10 @@ _STRINGS: dict[str, dict[str, str]] = {
         "fr": "Secondes gagnées en égalant les meilleurs temps par secteur du peloton.",
     },
     "tip.strengths": {
-        "en": "Your average top-% over ranked stages — lower is stronger.",
-        "fr": "Ton top-% moyen sur les spéciales classées — plus bas = plus fort.",
+        "en": "Average share of the field you beat on ranked stages — higher is better.",
+        "fr": "Part moyenne du peloton que tu bats sur les spéciales classées — plus haut = mieux.",
     },
+    "strengths.beats": {"en": "beats", "fr": "bat"},
     "tip.activity": {
         "en": "Days on which you set your current times.",
         "fr": "Jours où tu as posé tes temps actuels.",

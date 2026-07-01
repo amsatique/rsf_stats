@@ -12,7 +12,7 @@
     <div>
       <div class="sugg-title">{{ t('dash.strengths_surface') }}</div>
       {% for s in strengths.by_surface %}
-      <div class="chip"><span style="text-transform:capitalize">{{ s.label }}</span> <span class="cnum">top {{ s.avg_percentile }}% · {{ s.stages }}</span></div>
+      <div class="chip"><span style="text-transform:capitalize">{{ s.label }}</span> <span class="cnum">{{ t('strengths.beats') }} {{ (100 - s.avg_percentile) | round(1) }}% · {{ s.stages }}</span></div>
       {% endfor %}
     </div>
     {% endif %}
@@ -20,7 +20,7 @@
     <div>
       <div class="sugg-title">{{ t('dash.strengths_country') }}</div>
       {% for s in strengths.by_country[:8] %}
-      <div class="chip">{{ s.flag }} {{ s.label }} <span class="cnum">top {{ s.avg_percentile }}% · {{ s.stages }}</span></div>
+      <div class="chip">{{ s.flag }} {{ s.label }} <span class="cnum">{{ t('strengths.beats') }} {{ (100 - s.avg_percentile) | round(1) }}% · {{ s.stages }}</span></div>
       {% endfor %}
     </div>
     {% endif %}
