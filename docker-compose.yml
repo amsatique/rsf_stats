@@ -1,0 +1,27 @@
+services:
+  rsf-stats:
+    build: .
+    image: rsf-stats
+    container_name: rsf-stats
+    ports:
+      # RSF_PORT (host) -> 8000 (fixed inside the container, see environment)
+      - "${RSF_PORT:-8000}:8000"
+    env_file:
+      - .env
+    environment:
+      # Overrides .env: guarantees the app listens on 8000 inside the container.
+      RSF_PORT: 8000
+      # Persisted SQLite (history + rivals) on the mounted volume.
+      RSF_DB_PATH: /app/data/rsf_stats.db
+    volumes:
+      - rsf-data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/healthz').status==200 else 1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  rsf-data:

@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}RSF Stats — {{ t('status.title') }}{% endblock %}
+
+{% block content %}
+<div class="page-title">{{ t('status.title') }}</div>
+<div class="subtitle">{{ t('status.sub') }}</div>
+
+<div class="cards">
+  <div class="card"><div class="value">{{ '✅' if status.session_open else '—' }}</div><div class="label">{{ t('status.session') }}</div></div>
+  <div class="card {{ 'accent' if status.cooldown_active else '' }}">
+    <div class="value">{{ (status.cooldown_seconds ~ 's') if status.cooldown_active else 'OK' }}</div>
+    <div class="label">{{ t('status.cooldown') }}</div>
+  </div>
+  <div class="card"><div class="value">{{ status.leaderboards_cached }}</div><div class="label">{{ t('status.leaderboards') }}</div></div>
+  <div class="card"><div class="value">{{ status.snapshots_cached }}</div><div class="label">{{ t('status.snapshots') }}</div></div>
+</div>
+
+<div class="panel">
+  <div class="panel-sub">{{ t('status.hint') }}</div>
+</div>
+{% endblock %}

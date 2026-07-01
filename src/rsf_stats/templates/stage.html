@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+{% block title %}RSF Stats — {{ board.stage.name if board.stage else ('Stage ' ~ board.stage_id) }}{% endblock %}
+
+{% block content %}
+<div class="stagehead">
+  {% if board.stage and board.stage.image_url %}
+  <img class="thumb" src="{{ board.stage.image_url }}" alt="" loading="lazy" onerror="this.style.display='none'">
+  {% endif %}
+  <div class="meta">
+    <strong>{{ board.stage.name if board.stage else ('Stage ' ~ board.stage_id) }}</strong>
+    {% if board.stage %}
+      &middot; {{ board.stage.flag }} {{ board.stage.country }}
+      {% if board.stage.surface %}&middot; <span class="surface">{{ board.stage.surface }}</span>{% endif %}
+      {% if board.stage.length_km is not none %}&middot; {{ '%.1f'|format(board.stage.length_km) }} km{% endif %}
+      {% if board.stage.author %}&middot; {{ t('stage.by') }} {{ board.stage.author }}{% endif %}
+    {% endif %}
+    &middot; {{ board.count }} {{ t('stage.hotlaps') }}
+    &middot; <a class="link" href="{{ board.stage.url if board.stage else '#' }}" target="_blank" rel="noopener">{{ t('stage.open_on') }} ↗</a>
+  </div>
+</div>
+
+{% if sectors.count > 1 %}
+<div class="sectors-panel">
+  <div class="sp-head">{{ t('stage.sector_analysis') }}</div>
+  <div class="sp-grid">
+    {% for i in range(sectors.count) %}
+    <div class="sp-cell">
+      <div class="sp-label">{{ t('stage.finish') if loop.last else t('stage.sector') ~ ' ' ~ (i+1) }}</div>
+      <div class="sp-best">{{ sectors.best_str[i] or '—' }}</div>
+      <div class="sp-who">{{ sectors.best_driver[i] or '' }}</div>
+      {% if my_entry and my_entry.sectors|length > i %}
+      {% set mine = my_entry.sectors[i] %}
+      {% set best = sectors.best_seconds[i] %}
+      <div class="sp-mine {{ 'purple' if best is not none and (mine - best) < 0.001 else '' }}">
+        {{ t('stage.you') }}: {{ '%.3f'|format(mine) }}
+        {% if best is not none %}<em>+{{ '%.3f'|format(mine - best) }}</em>{% endif %}
+        {% if sector_ranks and sector_ranks[i] is defined %}· P{{ sector_ranks[i] }}{% endif %}
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+    {% if sectors.ideal_str %}
+    <div class="sp-cell ideal">
+      <div class="sp-label">{{ t('stage.ideal') }}</div>
+      <div class="sp-best">{{ sectors.ideal_str }}</div>
+      <div class="sp-who">{{ t('stage.best_combined') }}</div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+
+{% if cars %}
+<div class="cars">
+  <span class="cars-label">{{ t('stage.top_cars') }}:</span>
+  {% for name, n in cars %}<span class="carchip">{{ name }} <b>{{ n }}</b></span>{% endfor %}
+</div>
+{% endif %}
+
+<div class="toolbar">
+  <input id="search" type="search" placeholder="{{ t('stage.search_driver') }}">
+  <select id="carFilter">
+    <option value="">{{ t('stage.all_cars') }}</option>
+    {% for name, n in cars %}<option value="{{ name }}">{{ name }} ({{ n }})</option>{% endfor %}
+  </select>
+  <label>{{ t('stage.since') }} <input id="since" type="date"></label>
+  <label><input id="mineOnly" type="checkbox"> {{ t('stage.me_only') }}</label>
+</div>
+
+<div class="table-wrap"><div class="scroll">
+  <table id="lb">
+    <thead>
+      <tr>
+        <th data-type="num" id="posTh">{{ t('col.pos') }}</th>
+        <th>{{ t('col.driver') }}</th>
+        <th>{{ t('col.car') }}</th>
+        {% for i in range(sectors.count) %}<th data-type="time">{{ 'Fin.' if loop.last else 'S' ~ (i+1) }}</th>{% endfor %}
+        <th data-type="time">{{ t('col.finish_time') }}</th>
+        <th data-type="time">{{ t('col.diff') }}</th>
+        <th data-type="date" id="uploadedTh">{{ t('col.uploaded') }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for e in board.entries %}
+      <tr data-car="{{ e.car or '' }}" data-date="{{ (e.uploaded or '')[:10] }}"
+          data-me="{{ '1' if (my_id and e.driver_id == my_id) else '0' }}"
+          {% if my_id and e.driver_id == my_id %}id="meRow"{% endif %}
+          class="{{ 'me' if (my_id and e.driver_id == my_id) else '' }}">
+        <td class="num" data-v="{{ e.position or 0 }}">{{ e.position or '' }}</td>
+        <td class="driver">{% if e.driver_id %}<a href="/?user_id={{ e.driver_id }}">{{ e.driver }}</a>{% else %}{{ e.driver }}{% endif %}{% if my_id and e.driver_id == my_id %} <span class="youtag">{{ t('stage.you') }}</span>{% endif %}</td>
+        <td>{{ e.car or '' }}</td>
+        {% for i in range(sectors.count) %}
+        <td class="time sector {{ 'purple' if (e.sectors|length > i and sectors.best_seconds[i] is not none and (e.sectors[i] - sectors.best_seconds[i]) < 0.001) else '' }}"
+            data-v="{{ e.sectors[i] if e.sectors|length > i else '' }}">{{ '%.3f'|format(e.sectors[i]) if e.sectors|length > i else '' }}</td>
+        {% endfor %}
+        <td class="time">{{ e.finish_time or '' }}</td>
+        <td class="time">{{ e.diff_first or '' }}</td>
+        <td class="num" data-v="{{ e.uploaded or '' }}">{{ e.uploaded or '' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div></div>
+<div id="noResults" class="empty" style="display:none">{{ t('stage.no_match') }}</div>
+
+{% if my_entry %}
+<div id="meBar" class="me-bar" style="display:none">
+  <span class="me-pos">P{{ my_entry.position }}</span>
+  <span class="me-name">{{ my_entry.driver }} <span class="youtag">{{ t('stage.you') }}</span></span>
+  <span class="me-car">{{ my_entry.car or '' }}</span>
+  <span class="me-time">{{ my_entry.finish_time or '' }}</span>
+  <span class="me-diff">{{ my_entry.diff_first or '' }}</span>
+</div>
+{% elif me_estimate %}
+<div class="me-bar">
+  <span class="me-pos">≈P{{ me_estimate.position }}</span>
+  <span class="me-name"><span class="youtag">{{ t('stage.you') }}</span> <span class="pct">{{ t('stage.est_note') }}</span></span>
+  <span class="me-car">{{ me_estimate.car or '' }}</span>
+  <span class="me-time">{{ me_estimate.time }}</span>
+  <span class="me-diff">+{{ '%.3f'|format(me_estimate.gap) }}</span>
+</div>
+{% endif %}
+
+<footer>
+  <a href="/api/stage/{{ board.stage_id }}">{{ t('nav.json') }}</a>
+</footer>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const table = document.getElementById("lb");
+  const rows = makeSortable(table);
+  const search = document.getElementById("search");
+  const carFilter = document.getElementById("carFilter");
+  const since = document.getElementById("since");
+  const mineOnly = document.getElementById("mineOnly");
+  const noResults = document.getElementById("noResults");
+  function applyFilters() {
+    const q = search.value.trim().toLowerCase();
+    const car = carFilter.value, sinceVal = since.value, mine = mineOnly.checked;
+    let visible = 0;
+    for (const row of rows) {
+      const hay = (row.cells[1].textContent + " " + row.cells[2].textContent).toLowerCase();
+      let ok = hay.includes(q);
+      if (ok && car) ok = row.dataset.car === car;
+      if (ok && sinceVal) ok = row.dataset.date >= sinceVal;
+      if (ok && mine) ok = row.dataset.me === "1";
+      row.classList.toggle("hidden", !ok);
+      if (ok) visible++;
+    }
+    noResults.style.display = visible ? "none" : "block";
+  }
+  [search, carFilter, since, mineOnly].forEach(el =>
+    el.addEventListener(el.tagName === "INPUT" && el.type !== "date" && el.type !== "checkbox" ? "input" : "change", applyFilters));
+
+  // Default sort: by position, best first.
+  document.getElementById("posTh").click();
+
+  // Sticky "you" bar: shown while your real row is scrolled out of view.
+  const meBar = document.getElementById("meBar");
+  const meRow = document.getElementById("meRow");
+  if (meBar && meRow) {
+    const obs = new IntersectionObserver(
+      ([entry]) => { meBar.style.display = entry.isIntersecting ? "none" : "flex"; },
+      { threshold: 0 }
+    );
+    obs.observe(meRow);
+  }
+</script>
+{% endblock %}

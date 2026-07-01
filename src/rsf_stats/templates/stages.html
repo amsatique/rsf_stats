@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}RSF Stats — {{ t('nav.stages') }}{% endblock %}
+
+{% block content %}
+<div class="page-title">{{ t('nav.stages') }} <span class="pct">({{ done_count }}/{{ total }})</span></div>
+
+<div class="toolbar">
+  <input id="search" type="search" placeholder="{{ t('tb.search') }}">
+  <select id="statusFilter">
+    <option value="all">{{ t('tb.all_status') }}</option>
+    <option value="done">{{ t('tb.done') }}</option>
+    <option value="todo">{{ t('tb.todo') }}</option>
+  </select>
+  <select id="surfaceFilter">
+    <option value="">{{ t('tb.all_surfaces') }}</option>
+    {% for s in stages | map(attribute='surface') | reject('none') | unique | sort %}
+    <option value="{{ s }}">{{ s | capitalize }}</option>
+    {% endfor %}
+  </select>
+  <select id="countryFilter">
+    <option value="">{{ t('tb.all_countries') }}</option>
+    {% for c in stages | map(attribute='country') | reject('none') | unique | sort %}
+    <option value="{{ c }}">{{ c }}</option>
+    {% endfor %}
+  </select>
+  <span class="spacer"></span>
+  <a class="btn" href="/export.csv{% if viewing_other %}?user_id={{ snapshot.driver_id }}{% endif %}">⬇ {{ t('nav.csv') }}</a>
+</div>
+
+<div class="table-wrap">
+  <div class="scroll">
+    <table id="stats">
+      <thead>
+        <tr>
+          <th data-type="num">{{ t('col.id') }}</th>
+          <th>{{ t('col.stage') }}</th>
+          <th>{{ t('col.country') }}</th>
+          <th>{{ t('col.surface') }}</th>
+          <th data-type="num">{{ t('col.length') }}</th>
+          <th data-type="bool">{{ t('col.status') }}</th>
+          <th>{{ t('col.reference_time') }}</th>
+          <th data-type="num" title="{{ t('tip.rank') }}">{{ t('col.rank') }} ⓘ</th>
+          <th>{{ t('col.car') }}</th>
+          <th>{{ t('col.diff') }}</th>
+          <th>{{ t('col.uploaded') }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in stages %}
+        <tr data-country="{{ s.country or '' }}" data-surface="{{ s.surface or '' }}" data-done="{{ '1' if s.done else '0' }}">
+          <td class="num" data-v="{{ s.stage_id or 0 }}">{{ s.stage_id or '' }}</td>
+          <td class="name">{% if s.stage_id %}<a href="/stage/{{ s.stage_id }}">{{ s.name }}</a>{% else %}{{ s.name }}{% endif %}</td>
+          <td>{{ s.flag }} {{ s.country or '' }}</td>
+          <td class="surface">{{ s.surface or '' }}</td>
+          <td class="num" data-v="{{ s.length_km or 0 }}">{{ '%.1f'|format(s.length_km) if s.length_km is not none else '' }}</td>
+          <td data-v="{{ '1' if s.done else '0' }}">
+            {% if s.done %}<span class="pill done">{{ t('pill.done') }}</span>{% else %}<span class="pill todo">{{ t('pill.todo') }}</span>{% endif %}
+          </td>
+          <td class="time">{{ s.reference_time if s.reference_time else '—' }}</td>
+          <td class="num" data-v="{{ s.my_rank or 0 }}">
+            {%- if s.my_rank %}{{ s.my_rank }}/{{ s.field_size }} <span class="pct">top {{ s.percentile }}%</span>
+            {%- elif s.done %}<span class="pct">{{ t('pill.unranked') }}</span>{% endif -%}
+          </td>
+          <td>{{ s.car or '' }}</td>
+          <td class="time">{{ s.diff_first or '' }}</td>
+          <td class="num">{{ s.uploaded or '' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+<div id="noResults" class="empty" style="display:none">{{ t('empty.no_results') }}</div>
+
+<footer>
+  {{ t('foot.snapshot_from') }} <a href="https://rallysimfans.hu" target="_blank" rel="noopener">rallysimfans.hu</a>
+  &middot; <a href="/api/stats{% if viewing_other %}?user_id={{ snapshot.driver_id }}{% endif %}">{{ t('nav.json') }}</a>
+</footer>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const table = document.getElementById("stats");
+  const rows = makeSortable(table);
+  const search = document.getElementById("search");
+  const statusFilter = document.getElementById("statusFilter");
+  const surfaceFilter = document.getElementById("surfaceFilter");
+  const countryFilter = document.getElementById("countryFilter");
+  const noResults = document.getElementById("noResults");
+  function applyFilters() {
+    const q = search.value.trim().toLowerCase();
+    const st = statusFilter.value, surface = surfaceFilter.value, country = countryFilter.value;
+    let visible = 0;
+    for (const row of rows) {
+      const name = row.cells[1].textContent.toLowerCase();
+      const done = row.dataset.done === "1";
+      let ok = name.includes(q);
+      if (ok && st === "done") ok = done;
+      if (ok && st === "todo") ok = !done;
+      if (ok && surface) ok = row.dataset.surface === surface;
+      if (ok && country) ok = row.dataset.country === country;
+      row.classList.toggle("hidden", !ok);
+      if (ok) visible++;
+    }
+    noResults.style.display = visible ? "none" : "block";
+  }
+  [search, statusFilter, surfaceFilter, countryFilter].forEach(el =>
+    el.addEventListener(el.tagName === "INPUT" ? "input" : "change", applyFilters));
+</script>
+{% endblock %}

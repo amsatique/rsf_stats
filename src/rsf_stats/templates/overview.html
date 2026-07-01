@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block title %}RSF Stats — {{ t('nav.overview') }}{% endblock %}
+
+{% block nav_extra %}
+<span id="ago" data-fetched="{{ snapshot.fetched_at }}"
+      data-updated="{{ t('common.updated') }}" data-ago="{{ t('common.ago') }}"
+      data-now="{{ t('common.just_now') }}">{{ t('common.just_now') }}</span>
+{% endblock %}
+
+{% block content %}
+<div class="subtitle">{{ t('dash.subtitle') }}</div>
+
+{% set pct = (100 * done_count / total) if total else 0 %}
+<div class="cards">
+  <div class="card"><div class="value">{{ total }}</div><div class="label">{{ t('dash.total_stages') }}</div></div>
+  <div class="card accent"><div class="value">{{ done_count }}</div><div class="label">{{ t('dash.completed') }}</div></div>
+  <div class="card" title="{{ t('tip.completion') }}"><div class="value">{{ '%.0f'|format(pct) }}%</div><div class="label">{{ t('dash.completion') }} ⓘ</div></div>
+</div>
+<div class="progress"><span style="width: {{ pct }}%"></span></div>
+
+{% if changes and (changes.new_completions or changes.rank_changes or changes.improvements) %}
+<div class="panel">
+  <div class="panel-head">{{ t('dash.since_last') }}</div>
+  <div class="chips">
+    {% for c in changes.new_completions %}<div class="chip ok">✅ {{ c.stage_name }} <span class="cnum">{{ c.time }}</span></div>{% endfor %}
+    {% for c in changes.improvements %}<div class="chip">⏱ {{ c.stage_name }} <span class="cnum">{{ c.old }} → {{ c.new }}</span></div>{% endfor %}
+    {% for c in changes.rank_changes %}<div class="chip {{ 'up' if c.new < c.old else 'down' }}">{{ '▲' if c.new < c.old else '▼' }} {{ c.stage_name }} <span class="cnum">P{{ c.old }} → P{{ c.new }}</span></div>{% endfor %}
+  </div>
+</div>
+{% endif %}
+
+{% if career %}
+<div class="cards small">
+  {% if career.km_driven is not none %}<div class="card"><div class="value">{{ "{:,}".format(career.km_driven) }}</div><div class="label">{{ t('dash.km_driven') }}</div></div>{% endif %}
+  {% if career.stages_driven is not none %}<div class="card"><div class="value">{{ "{:,}".format(career.stages_driven) }}</div><div class="label">{{ t('dash.stages_driven') }}</div></div>{% endif %}
+  {% if career.entered_rallies is not none %}<div class="card"><div class="value">{{ "{:,}".format(career.entered_rallies) }}</div><div class="label">{{ t('dash.rallies_entered') }}</div></div>{% endif %}
+  {% if career.finished_rallies is not none %}<div class="card"><div class="value">{{ "{:,}".format(career.finished_rallies) }}{% if career.finish_pct is not none %} <small>({{ career.finish_pct }}%)</small>{% endif %}</div><div class="label">{{ t('dash.rallies_finished') }}</div></div>{% endif %}
+</div>
+{% endif %}
+
+{% if (history and history | length > 1) or (activity and activity.max > 0) %}
+<div class="panel-row">
+  {% if history and history | length > 1 %}
+  <div class="panel">
+    <div class="panel-head">{{ t('dash.progress_over_time') }}</div>
+    {% set maxd = (history | map(attribute='done_count') | max) or 1 %}
+    {% set w = 100 / (history | length) %}
+    <svg class="spark" viewBox="0 0 100 30" preserveAspectRatio="none">
+      <polyline points="{% for h in history %}{{ '%.2f'|format(loop.index0 * w + w/2) }},{{ '%.2f'|format(30 - (28 * h.done_count / maxd)) }} {% endfor %}" />
+    </svg>
+    <div class="panel-sub">{{ history[0].done_count }} → {{ history[-1].done_count }} completed over {{ history | length }} snapshots</div>
+  </div>
+  {% endif %}
+  {% if activity and activity.max > 0 %}
+  <div class="panel">
+    <div class="panel-head" title="{{ t('tip.activity') }}">{{ t('dash.activity') }} ({{ t('dash.activity_sub').replace('{n}', (activity.days | length // 7) | string) }}) ⓘ</div>
+    <div class="heatmap">
+      {% for d in activity.days %}<span class="hcell l{{ [d.count, 4] | min }}" title="{{ d.date }}: {{ d.count }}"></span>{% endfor %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+
+{% if suggestions.shortest or suggestions.near_countries %}
+<details class="panel" open>
+  <summary class="panel-head">{{ t('dash.suggested') }}</summary>
+  <div class="sugg">
+    {% if suggestions.shortest %}
+    <div>
+      <div class="sugg-title">{{ t('dash.shortest') }}</div>
+      {% for s in suggestions.shortest %}
+      <a class="chip" href="/stage/{{ s.stage_id }}">{{ s.flag }} {{ s.name }} <span class="cnum">{{ '%.1f'|format(s.length_km) }} km</span></a>
+      {% endfor %}
+    </div>
+    {% endif %}
+    {% if suggestions.near_countries %}
+    <div>
+      <div class="sugg-title">{{ t('dash.near') }}</div>
+      {% for c in suggestions.near_countries %}
+      <span class="chip">{{ c.flag }} {{ c.country }} <span class="cnum">{{ c.done }}/{{ c.total }} · {{ c.remaining }}</span></span>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+</details>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const ago = document.getElementById("ago");
+  if (ago) {
+    const fetchedAt = parseFloat(ago.dataset.fetched) * 1000;
+    const L = { updated: ago.dataset.updated, ago: ago.dataset.ago, now: ago.dataset.now };
+    function tick() {
+      if (!fetchedAt) return;
+      const s = Math.max(0, Math.round((Date.now() - fetchedAt) / 1000));
+      const unit = s < 60 ? `${s}s` : `${Math.round(s / 60)}m`;
+      ago.textContent = s < 5 ? `${L.updated} ${L.now}`
+        : (L.ago === "il y a" ? `${L.updated} ${L.ago} ${unit}` : `${L.updated} ${unit} ${L.ago}`);
+    }
+    tick(); setInterval(tick, 1000);
+  }
+</script>
+{% endblock %}

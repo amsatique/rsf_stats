@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}RSF Stats — {{ t('nav.compete') }}{% endblock %}
+
+{% block content %}
+<div class="page-title">{{ t('nav.compete') }}</div>
+
+<div class="panel">
+  <div class="panel-head">{{ t('compete.follow') }}</div>
+  {% if notfound %}
+  <div class="warn">{{ t('compete.notfound').replace('{name}', notfound) }}</div>
+  {% endif %}
+  <form class="add" action="/rivals/add" method="post">
+    <input type="text" name="identifier" placeholder="{{ t('compete.id_or_name') }}" required>
+    <input type="text" name="label" placeholder="{{ t('compete.label_opt') }}">
+    <button class="btn" type="submit">+ {{ t('compete.follow_btn') }}</button>
+  </form>
+  <div class="hint">{{ t('compete.lookup_hint') }}</div>
+
+  <form class="add" action="/compare" method="get" style="margin-top:.5rem">
+    <input type="number" name="a" placeholder="{{ t('compete.driver_a') }}">
+    <input type="number" name="b" placeholder="{{ t('compete.driver_b') }}" required>
+    <button class="btn" type="submit">{{ t('tb.compare') }}</button>
+  </form>
+</div>
+
+<div class="panel-head">{{ t('compete.rivals_title') }}</div>
+{% if summaries %}
+<div class="table-wrap" style="margin-bottom:1.25rem">
+  <table>
+    <thead>
+      <tr><th>{{ t('col.driver') }}</th><th>{{ t('dash.completed') }}</th><th>{{ t('compete.shared') }}</th><th>{{ t('compete.h2h') }}</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for s in summaries %}
+      <tr>
+        <td class="name"><a class="link" href="/?user_id={{ s.rival.user_id }}">{{ s.rival.label or s.name }}</a></td>
+        <td>{{ s.done }}</td>
+        <td>{{ s.shared }}</td>
+        <td><span class="w">{{ s.my_wins }}</span> – <span class="l">{{ s.their_wins }}</span>
+            &middot; <a class="link" href="/compare?other={{ s.rival.user_id }}">{{ t('compete.details') }}</a></td>
+        <td>
+          <form class="inline-form" action="/rivals/remove" method="post">
+            <input type="hidden" name="user_id" value="{{ s.rival.user_id }}">
+            <button class="btn danger" type="submit">{{ t('compete.remove') }}</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="empty">{{ t('compete.no_rivals') }}</div>
+{% endif %}
+
+{% if championship %}
+<div class="panel-head">{{ t('compete.championship') }}</div>
+<div class="table-wrap" style="margin-bottom:1.25rem"><div class="scroll">
+  <table>
+    <thead><tr><th>#</th><th>{{ t('col.driver') }}</th><th>{{ t('compete.points') }}</th><th>{{ t('compete.wins') }}</th><th>{{ t('compete.contested') }}</th></tr></thead>
+    <tbody>
+      {% for row in championship %}
+      <tr>
+        <td class="num">{{ loop.index }}</td>
+        <td class="name">{{ row.name }}</td>
+        <td><b>{{ row.points }}</b></td>
+        <td>{{ row.wins }}</td>
+        <td>{{ row.contested }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div></div>
+{% endif %}
+
+<div class="panel-head" title="{{ t('tip.targets') }}">{{ t('compete.targets_title') }} ⓘ</div>
+{% if targets %}
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr><th>{{ t('col.stage') }}</th><th>{{ t('col.country') }}</th><th>{{ t('compete.rival') }}</th><th>{{ t('compete.your_time') }}</th><th>{{ t('compete.their_time') }}</th><th>{{ t('compete.gap') }}</th></tr>
+    </thead>
+    <tbody>
+      {% for r in targets %}
+      <tr>
+        <td class="name"><a href="/stage/{{ r.stage.stage_id }}">{{ r.stage.name }}</a></td>
+        <td>{{ r.stage.flag }} {{ r.stage.country or '' }}</td>
+        <td>{{ r.rival_name }}</td>
+        <td class="time">{{ r.my_time }}</td>
+        <td class="time">{{ r.their_time }}</td>
+        <td class="gap">−{{ '%.3f'|format(r.gap) }}s</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% elif summaries %}
+<div class="empty">{{ t('compete.no_targets') }}</div>
+{% endif %}
+{% endblock %}

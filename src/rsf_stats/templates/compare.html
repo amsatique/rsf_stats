@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}RSF Stats — {{ t('compete.compare') }}{% endblock %}
+
+{% block content %}
+{% set lname = left.driver_name or ('user #' ~ left.driver_id) %}
+{% set rname = right.driver_name or ('user #' ~ right.driver_id) %}
+{% set lwins = rows | selectattr('delta', 'lt', 0) | list | length %}
+{% set rwins = rows | selectattr('delta', 'gt', 0) | list | length %}
+
+<div class="page-title">{{ t('compete.compare') }}</div>
+<div class="versus">
+  <div class="driver {{ 'win' if lwins > rwins else '' }}">
+    <div class="name">{{ lname }}</div>
+    <div class="sub">{{ left.done_count }} {{ t('dash.completed') | lower }} · {{ t('compete.faster_on') }} <b>{{ lwins }}</b></div>
+  </div>
+  <div class="vs">
+    <div class="score"><span class="l">{{ lwins }}</span> – <span class="r">{{ rwins }}</span></div>
+    <div style="color:var(--muted);font-size:.75rem">VS</div>
+  </div>
+  <div class="driver {{ 'win' if rwins > lwins else '' }}">
+    <div class="name">{{ rname }}</div>
+    <div class="sub">{{ right.done_count }} {{ t('dash.completed') | lower }} · {{ t('compete.faster_on') }} <b>{{ rwins }}</b></div>
+  </div>
+</div>
+
+<div class="note">{{ t('compete.shared_note').replace('{n}', rows | length | string) }}
+  &middot; {{ t('compete.neg_delta') }} <span class="faster">{{ lname }}</span>.</div>
+
+{% if rows %}
+<div class="table-wrap"><div class="scroll">
+  <table id="cmp">
+    <thead>
+      <tr><th>{{ t('col.stage') }}</th><th>{{ t('col.country') }}</th><th data-type="time">{{ lname }}</th><th data-type="time">{{ rname }}</th><th data-type="num">{{ t('compete.delta') }}</th></tr>
+    </thead>
+    <tbody>
+      {% for r in rows %}
+      <tr>
+        <td class="name"><a href="/stage/{{ r.stage.stage_id }}">{{ r.stage.name }}</a></td>
+        <td>{{ r.stage.flag }} {{ r.stage.country or '' }}</td>
+        <td class="time">{{ r.left_time }}</td>
+        <td class="time">{{ r.right_time }}</td>
+        <td class="delta {{ 'faster' if r.delta < 0 else 'slower' }}" data-v="{{ r.delta }}">{{ '%+.3f'|format(r.delta) }}s</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div></div>
+{% else %}
+<div class="empty">{{ t('compete.no_shared') }}</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>makeSortable(document.getElementById("cmp"));</script>
+{% endblock %}

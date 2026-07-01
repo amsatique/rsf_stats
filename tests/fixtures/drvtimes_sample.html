@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<!-- Synthetic fixture reproducing the hotlap_drvtimes page structure:
+     a "Hotlap Rank" table (the driver's times) and a "Hotlap Stages" table (catalog).
+     The Rank table starts with a driver header row (name + link to their stats). -->
+<html>
+<body>
+<table>
+  <tr><td class="cim1">Hotlap Rank</td></tr>
+  <tr><td>
+    <table>
+      <tr class='fejlec' align=center><td colspan='5'><a href="usersstats.php?user_stats=42" title="Stats" style="color:#FFFDCD"><samp><img src="images/flag/FR.png" width="16"> &nbsp;<b>Test Driver</b></samp> <samp> / testdriver</samp></a></td></tr>
+      <tr class="fejlec2"><td>Stage</td><td>Car</td><td>Stage Time</td><td>Diff 1st</td><td>Uploaded</td></tr>
+      <tr class="paros">
+        <td><a href="/rbr/hotlap.php?centerbox=rsfhotlap&stageid=346">Fernet Branca 2015</a></td>
+        <td>Peugeot 208</td><td>03:12.456</td><td>1.230</td><td>2026-06-01 10:00:00</td>
+      </tr>
+      <tr class="paratlan">
+        <td><a href="/rbr/hotlap.php?centerbox=rsfhotlap&stageid=101">Some Austrian Stage</a></td>
+        <td>Ford Fiesta</td><td>05:00.001</td><td>10.000</td><td>2026-06-02 12:30:00</td>
+      </tr>
+    </table>
+  </td></tr>
+</table>
+
+<table>
+  <tr><td class="cim1">Hotlap Stages</td></tr>
+  <tr><td>
+    <table>
+      <tr class="fejlec2"><td>ID</td><td>Stage</td><td>Length</td></tr>
+      <tr class="fejlec2"><td><a name="AR"></a><img src="images/flag/AR.png" height="16"></td><td colspan="2"><b>Argentina</b></td></tr>
+      <tr class="paros"><td>346</td><td><b><a href='/rbr/hotlap.php?centerbox=rsfhotlap&stageid=346'><div onmouseover="Tip('<b>Surface:</b></td><td>gravel</td><b>Author:</b></td><td>RALLY Guru</td>')">Fernet Branca 2015</div></a></b></td><td>6.0 km</td></tr>
+      <tr class="paratlan"><td>376</td><td><b><a href='/rbr/hotlap.php?centerbox=rsfhotlap&stageid=376'><div onmouseover="Tip('<b>Surface:</b></td><td>tarmac</td>')">Otra Etapa</div></a></b></td><td>12.3 km</td></tr>
+      <tr class="fejlec2"><td><a name="AT"></a><img src="images/flag/AT.png" height="16"></td><td colspan="2"><b>Austria</b></td></tr>
+      <tr class="paros"><td>101</td><td><b><a href='/rbr/hotlap.php?centerbox=rsfhotlap&stageid=101'><div onmouseover="Tip('<b>Surface:</b></td><td>snow</td>')">Some Austrian Stage</div></a></b></td><td>8.5 km</td></tr>
+    </table>
+  </td></tr>
+</table>
+</body>
+</html>

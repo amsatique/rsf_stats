@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}RSF Stats — {{ t('nav.analysis') }}{% endblock %}
+
+{% block content %}
+<div class="page-title">{{ t('nav.analysis') }}</div>
+
+{% if strengths and (strengths.by_surface or strengths.by_country) %}
+<details class="panel" open>
+  <summary class="panel-head" title="{{ t('tip.strengths') }}">{{ t('dash.strengths') }} ⓘ</summary>
+  <div class="sugg">
+    {% if strengths.by_surface %}
+    <div>
+      <div class="sugg-title">{{ t('dash.strengths_surface') }}</div>
+      {% for s in strengths.by_surface %}
+      <div class="chip"><span style="text-transform:capitalize">{{ s.label }}</span> <span class="cnum">top {{ s.avg_percentile }}% · {{ s.stages }}</span></div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    {% if strengths.by_country %}
+    <div>
+      <div class="sugg-title">{{ t('dash.strengths_country') }}</div>
+      {% for s in strengths.by_country[:8] %}
+      <div class="chip">{{ s.flag }} {{ s.label }} <span class="cnum">top {{ s.avg_percentile }}% · {{ s.stages }}</span></div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+</details>
+{% endif %}
+
+{% if time_on_table %}
+<details class="panel" open>
+  <summary class="panel-head" title="{{ t('tip.time_on_table') }}">{{ t('dash.time_on_table') }} &mdash; {{ t('dash.to_gain').replace('{s}', '%.1f'|format(time_on_table | sum(attribute='gain_potential'))) }} ⓘ</summary>
+  <div class="chips">
+    {% for s in time_on_table[:16] %}
+    <a class="chip" href="/stage/{{ s.stage_id }}" title="{{ t('tip.time_on_table') }}">
+      {{ s.flag }} {{ s.name }} <span class="cnum">−{{ '%.3f'|format(s.gain_potential) }}s</span>
+    </a>
+    {% endfor %}
+  </div>
+</details>
+{% endif %}
+
+{% if movers %}
+<div class="panel">
+  <div class="panel-head">{{ t('analysis.rank_movers') }}</div>
+  <div class="chips">
+    {% for m in movers %}
+    <div class="chip {{ 'up' if m.delta < 0 else 'down' }}">
+      {{ '▲' if m.delta < 0 else '▼' }} <a class="chip-link" href="/stage/{{ m.stage_id }}">{{ m.stage_name }}</a>
+      <span class="cnum">P{{ m.first }} → P{{ m.last }} ({{ '%+d'|format(-m.delta) }})</span>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+{% if improvements %}
+<div class="panel">
+  <div class="panel-head">{{ t('dash.pbs') }} 🏁</div>
+  <div class="chips">
+    {% for imp in improvements %}
+    <div class="chip"><span>{{ imp.stage_name }}</span> <span class="cnum">{{ imp.n }} × · best {{ '%.3f'|format(imp.best_seconds) }}s</span></div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<details class="panel" open>
+  <summary class="panel-head">{{ t('dash.by_surface') }} ({{ surfaces | length }})</summary>
+  <div class="chips">
+    {% for s in surfaces %}
+    <div class="chip" title="{{ '%.0f'|format(s.km_done) }} / {{ '%.0f'|format(s.km_total) }} km">
+      <span style="text-transform:capitalize">{{ s.surface }}</span>
+      <span class="cbar"><span style="width: {{ (100 * s.done / s.total) if s.total else 0 }}%"></span></span>
+      <span class="cnum">{{ s.done }}/{{ s.total }}</span>
+    </div>
+    {% endfor %}
+  </div>
+</details>
+
+<details class="panel">
+  <summary class="panel-head">{{ t('dash.by_country') }} ({{ countries | length }})</summary>
+  <div class="chips">
+    {% for c in countries %}
+    <div class="chip" title="{{ c.done }} / {{ c.total }} in {{ c.country }}">
+      <span>{{ c.flag }} {{ c.country }}</span>
+      <span class="cbar"><span style="width: {{ (100 * c.done / c.total) if c.total else 0 }}%"></span></span>
+      <span class="cnum">{{ c.done }}/{{ c.total }}</span>
+    </div>
+    {% endfor %}
+  </div>
+</details>
+
+{% if not (strengths.by_surface or time_on_table or improvements) %}
+<div class="empty">{{ t('analysis.empty') }}</div>
+{% endif %}
+{% endblock %}

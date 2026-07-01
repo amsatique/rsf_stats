@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}" data-theme="{{ theme | default('dark') }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}RSF Stats{% endblock %}</title>
+  <link rel="stylesheet" href="/static/app.css">
+  <style>{% block extra_css %}{% endblock %}</style>
+</head>
+<body>
+  <nav class="topnav">
+    <a class="brand" href="/">RSF <span class="accent">Stats</span></a>
+    {% if driver_name %}<span class="user">{{ driver_name }}</span>{% endif %}
+    {% if viewing_other %}<a class="link" href="/">&larr; {{ t('nav.back') }}</a>{% endif %}
+    <div class="navlinks">
+      <a href="/" class="{{ 'active' if active == 'overview' else '' }}">{{ t('nav.overview') }}</a>
+      <a href="/stages" class="{{ 'active' if active == 'stages' else '' }}">{{ t('nav.stages') }}</a>
+      <a href="/analysis" class="{{ 'active' if active == 'analysis' else '' }}">{{ t('nav.analysis') }}</a>
+      <a href="/compete" class="{{ 'active' if active == 'compete' else '' }}">{{ t('nav.compete') }}</a>
+      <a href="https://rallysimfans.hu/rbr/rally_online.php" target="_blank" rel="noopener">{{ t('nav.rallies_online') }} ↗</a>
+    </div>
+    <div class="navright">
+      {% block nav_extra %}{% endblock %}
+      <span class="langsel">
+        <a class="{{ 'on' if lang == 'en' else '' }}" href="{{ request.url.path }}?lang=en">EN</a>
+        <a class="{{ 'on' if lang == 'fr' else '' }}" href="{{ request.url.path }}?lang=fr">FR</a>
+      </span>
+      <button class="btn" type="button" onclick="toggleTheme()" title="Theme" aria-label="Toggle theme">
+        <span class="theme-icon">{{ '☀️' if theme == 'light' else '🌙' }}</span>
+      </button>
+      <a class="btn" href="{{ request.url.path }}?refresh=1">↻ {{ t('nav.refresh') }}</a>
+    </div>
+  </nav>
+  <div class="wrap">
+    {% block content %}{% endblock %}
+  </div>
+  <script>
+    // Instant light/dark toggle (persisted via cookie; server reads it to avoid FOUC).
+    function toggleTheme() {
+      const html = document.documentElement;
+      const next = html.dataset.theme === "light" ? "dark" : "light";
+      html.dataset.theme = next;
+      document.cookie = "theme=" + next + "; path=/; max-age=31536000; samesite=lax";
+      const icon = document.querySelector(".theme-icon");
+      if (icon) icon.textContent = next === "light" ? "☀️" : "🌙";
+    }
+    // Shared helpers: chrono parsing + click-to-sort tables.
+    function timeToSeconds(v) {
+      if (!v) return Infinity;
+      return v.replace(",", ".").split(":").map(parseFloat).reduce((a, p) => a * 60 + p, 0);
+    }
+    function makeSortable(table) {
+      if (!table) return;
+      const tbody = table.tBodies[0];
+      const rows = Array.from(tbody.rows);
+      let state = {};
+      table.querySelectorAll("th").forEach((th, idx) => {
+        th.addEventListener("click", () => {
+          const type = th.dataset.type || "str";
+          const asc = state.col === idx ? !state.asc : true;
+          state = { col: idx, asc };
+          table.querySelectorAll("th").forEach(h => h.classList.remove("asc", "desc"));
+          th.classList.add(asc ? "asc" : "desc");
+          rows.sort((a, b) => {
+            let va = a.cells[idx].dataset.v ?? a.cells[idx].textContent.trim();
+            let vb = b.cells[idx].dataset.v ?? b.cells[idx].textContent.trim();
+            if (type === "num") { va = parseFloat(va) || 0; vb = parseFloat(vb) || 0; }
+            else if (type === "time") { va = timeToSeconds(va); vb = timeToSeconds(vb); }
+            const cmp = va > vb ? 1 : va < vb ? -1 : 0;
+            return asc ? cmp : -cmp;
+          });
+          rows.forEach(r => tbody.appendChild(r));
+        });
+      });
+      return rows;
+    }
+  </script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>
