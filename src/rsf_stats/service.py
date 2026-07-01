@@ -21,7 +21,7 @@ from . import storage
 from .client import login
 from .config import Settings
 from .log import logger
-from .models import Leaderboard, StatsSnapshot
+from .models import Leaderboard, StatsSnapshot, time_to_seconds
 from .scraper import (
     ScrapeError,
     build_user_index,
@@ -168,7 +168,21 @@ def _enrich_ranks(
         except httpx.HTTPError:
             return False
         stage.field_size = board.count
-        stage.my_rank = board.find_rank(snapshot.driver_id)
+        real = board.find_rank(snapshot.driver_id)
+        if real is not None:
+            stage.my_rank = real
+        else:
+            # Not on the public board yet: estimate the rank from my own time.
+            my_sec = time_to_seconds(stage.reference_time)
+            if my_sec is not None:
+                finishes = [
+                    f
+                    for f in (time_to_seconds(e.finish_time) for e in board.entries)
+                    if f is not None
+                ]
+                if finishes:
+                    stage.my_rank = 1 + sum(1 for f in finishes if f < my_sec)
+                    stage.rank_estimated = True
         stage.gain_potential = board.gain_potential(snapshot.driver_id)
     return True
 

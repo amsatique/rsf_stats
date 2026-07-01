@@ -58,7 +58,7 @@
           </td>
           <td class="time">{{ s.reference_time if s.reference_time else '—' }}</td>
           <td class="num" data-v="{{ s.my_rank or 0 }}">
-            {%- if s.my_rank %}{{ s.my_rank }}/{{ s.field_size }} <span class="pct">top {{ s.percentile }}%</span>
+            {%- if s.my_rank %}{{ '~' if s.rank_estimated else '' }}{{ s.my_rank }}/{{ s.field_size }} <span class="pct">top {{ s.percentile }}%</span>
             {%- elif s.done %}<span class="pct">{{ t('pill.unranked') }}</span>{% endif -%}
           </td>
           <td>{{ s.car or '' }}</td>

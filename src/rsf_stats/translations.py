@@ -104,8 +104,14 @@ _STRINGS: dict[str, dict[str, str]] = {
         "fr": "Spéciales où un rival suivi n'est que légèrement devant toi.",
     },
     "analysis.empty": {
-        "en": "Set some hotlaps (and let ranks load) to see your analysis.",
-        "fr": "Pose des hotlaps (et laisse les rangs charger) pour voir ton analyse.",
+        "en": (
+            "Nothing to analyse yet — ranks load once your times are on the stage "
+            "leaderboards (a ~ marks an estimated rank)."
+        ),
+        "fr": (
+            "Rien à analyser pour l'instant — les rangs se remplissent dès que tes "
+            "temps sont sur les classements (un ~ indique un rang estimé)."
+        ),
     },
     "col.driver": {"en": "Driver", "fr": "Pilote"},
     "col.pos": {"en": "Pos", "fr": "Pos"},

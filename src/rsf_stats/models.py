@@ -56,6 +56,7 @@ class Stage(BaseModel):
     uploaded: str | None = None  # upload timestamp
     my_rank: int | None = None  # my position in the stage leaderboard
     field_size: int | None = None  # total drivers ranked on this stage
+    rank_estimated: bool = False  # True if my_rank is inferred (time not on public board)
     gain_potential: float | None = None  # seconds I'd save by matching best sectors
 
     @computed_field  # type: ignore[prop-decorator]
